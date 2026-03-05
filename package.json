@@ -9,7 +9,7 @@
   "bugs": {
     "url": "https://github.com/gmathankumar/octane-runner/issues"
   },
-  "homepage": "https://github.com/gmathankumar/octane-runner#readme"
+  "homepage": "https://github.com/gmathankumar/octane-runner#readme",
   "main": "lib/octane.js",
   "bin": {
     "octane-runner": "./bin/cli.js"
