@@ -1,0 +1,29 @@
+{
+  "name": "octane-runner",
+  "version": "1.0.0",
+  "description": "Link ALM Octane tests to work items — driven by a git commit hash or a CSV of test names",
+  "main": "lib/octane.js",
+  "bin": {
+    "octane-runner": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "alm",
+    "octane",
+    "microfocus",
+    "opentext",
+    "test-management",
+    "cli"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "csv-parse": "^5.5.6"
+  }
+}
