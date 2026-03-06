@@ -38,9 +38,10 @@ SESSION.JSON (gitignore this file — contains secrets)
 
 CONFIG.JSON (safe to commit)
   {
-    "searchUrl":  "https://almoctane-eur.saas.microfocus.com/api/shared_spaces/<sid>/workspaces/<wid>/tests?fields=...&query=...",
-    "updateUrl":  "https://almoctane-eur.saas.microfocus.com/api/shared_spaces/<sid>/workspaces/<wid>/tests",
-    "workItemId": "1809072"
+    "searchUrl":         "https://almoctane-eur.saas.microfocus.com/api/shared_spaces/<sid>/workspaces/<wid>/tests?fields=...&query=...",
+    "updateUrl":         "https://almoctane-eur.saas.microfocus.com/api/shared_spaces/<sid>/workspaces/<wid>/tests",
+    "workItemId":        "1809072",
+    "testNameRegex":     "^\\+.*\\b(test_[a-zA-Z0-9_]+)\\s*\\("
   }
 `.trim();
 
@@ -95,9 +96,9 @@ function parseArgs(argv) {
 
   if (COMMIT) {
     log('info', `Mode       : git commit ${COMMIT}`);
-    testNames = await extractTestNamesFromCommit(COMMIT);
+    testNames = await extractTestNamesFromCommit(COMMIT, config.testNameRegex);
     if (testNames.length === 0) {
-      log('warn', 'No test names matching test_* found in the commit diff. Exiting.');
+      log('warn', 'No test names matching the configured regex were found in the commit diff. Exiting.');
       process.exit(0);
     }
     log('info', `Tests found: ${testNames.length}`);

@@ -32,7 +32,8 @@ Copy your Octane workspace URL and work item ID here once. Never needs to change
 {
   "searchUrl": "https://almoctane-eur.saas.microfocus.com/api/shared_spaces/146003/workspaces/1002/tests?fields=creation_time,id,phase,name,subtype,author%7Bfull_name%7D,owner%7Bfull_name%7D&limit=100&offset=0&order_by=name,id&query=%22(subtype+IN+%27gherkin_test%27,%27test_manual%27,%27test_automated%27)%22",
   "updateUrl": "https://almoctane-eur.saas.microfocus.com/api/shared_spaces/146003/workspaces/1002/tests",
-  "workItemId": "1809072"
+  "workItemId": "1809072",
+  "testNameRegex": "^\\+.*\\b(test_[a-zA-Z0-9_]+)\\s*\\("
 }
 ```
 
@@ -85,7 +86,7 @@ Paste them into `session.json` and save. Done.
 
 ### Link tests from a git commit (recommended)
 
-Runs `git show <hash> --patch` in the current directory, extracts all added `test_*` method names, then searches and links each one in Octane.
+Runs `git show <hash> --patch` in the current directory, extracts test names using `config.testNameRegex` (or a built-in default for `test_*` methods), then searches and links each one in Octane.
 
 ```bash
 # Run from inside your Java/Spring repo
@@ -156,7 +157,7 @@ git show <hash> --patch
         ▼ (written to OS temp file, deleted after)
   commit.patch
         │
-        ▼ (regex: /^\+.*\b(test_[a-zA-Z0-9_]+)\s*\(/gm)
+        ▼ (regex: config.testNameRegex || /^\+.*\b(test_[a-zA-Z0-9_]+)\s*\(/gm)
   [ "test_validateLastName_...", "test_processPayment_...", ... ]
         │
         ▼ for each test name:
