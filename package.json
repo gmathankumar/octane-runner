@@ -22,6 +22,9 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "scripts": {
+    "test": "jest"
+  },
   "keywords": [
     "alm",
     "octane",
@@ -34,5 +37,8 @@
   "license": "MIT",
   "dependencies": {
     "csv-parse": "^5.5.6"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0"
   }
 }
