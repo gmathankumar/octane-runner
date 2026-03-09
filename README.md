@@ -33,11 +33,14 @@ Copy your Octane workspace URL and work item ID here once. Never needs to change
   "searchUrl": "https://almoctane-eur.saas.microfocus.com/api/shared_spaces/146003/workspaces/1002/tests?fields=creation_time,id,phase,name,subtype,author%7Bfull_name%7D,owner%7Bfull_name%7D&limit=100&offset=0&order_by=name,id&query=%22(subtype+IN+%27gherkin_test%27,%27test_manual%27,%27test_automated%27)%22",
   "updateUrl": "https://almoctane-eur.saas.microfocus.com/api/shared_spaces/146003/workspaces/1002/tests",
   "workItemId": "1809072",
+  "octaneClientVersion": "26.2.8.91",
   "testNameRegex": "^\\+.*\\b(test_[a-zA-Z0-9_]+)\\s*\\("
 }
 ```
 
 > **Tip:** The `searchUrl` can be copied directly from any existing search request in DevTools — it contains all the right query filters. Only the `text_search` param is replaced per test name at runtime.
+
+`octaneClientVersion` controls the `octane-client-version` request header. Set it to match the version expected by your Octane environment.
 
 ---
 
