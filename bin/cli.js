@@ -41,6 +41,7 @@ CONFIG.JSON (safe to commit)
     "searchUrl":         "https://almoctane-eur.saas.microfocus.com/api/shared_spaces/<sid>/workspaces/<wid>/tests?fields=...&query=...",
     "updateUrl":         "https://almoctane-eur.saas.microfocus.com/api/shared_spaces/<sid>/workspaces/<wid>/tests",
     "workItemId":        "1809072",
+    "octaneClientVersion": "26.2.8.91",
     "testNameRegex":     "^\\+.*\\b(test_[a-zA-Z0-9_]+)\\s*\\("
   }
 `.trim();

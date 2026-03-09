@@ -81,6 +81,71 @@ describe('runOctaneLinks', () => {
     expect(body.data[0].covered_content.data[0].id).toBe('1809072');
   });
 
+
+  test('uses octaneClientVersion from config for request headers', async () => {
+    doRequest
+      .mockResolvedValueOnce({
+        status: 200,
+        body: JSON.stringify({ total_count: 1, data: [{ id: 123 }] }),
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        body: '{"ok":true}',
+      });
+
+    await runOctaneLinks({
+      testNames: ['test_alpha'],
+      config: {
+        searchUrl: 'https://example.com/tests?fields=id',
+        updateUrl: 'https://example.com/tests',
+        workItemId: '1809072',
+        octaneClientVersion: '99.1.2.3',
+      },
+      session: {
+        cookie: 'cookie-value',
+        'xsrf-header': 'xsrf-value',
+      },
+      delayMs: 0,
+      dryRun: false,
+    });
+
+    const getCall = doRequest.mock.calls[0][0];
+    const putCall = doRequest.mock.calls[1][0];
+
+    expect(getCall.headers['octane-client-version']).toBe('99.1.2.3');
+    expect(putCall.headers['octane-client-version']).toBe('99.1.2.3');
+  });
+
+  test('falls back to default octane client version when not configured', async () => {
+    doRequest
+      .mockResolvedValueOnce({
+        status: 200,
+        body: JSON.stringify({ total_count: 1, data: [{ id: 123 }] }),
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        body: '{"ok":true}',
+      });
+
+    await runOctaneLinks({
+      testNames: ['test_alpha'],
+      config: {
+        searchUrl: 'https://example.com/tests?fields=id',
+        updateUrl: 'https://example.com/tests',
+        workItemId: '1809072',
+      },
+      session: {
+        cookie: 'cookie-value',
+        'xsrf-header': 'xsrf-value',
+      },
+      delayMs: 0,
+      dryRun: false,
+    });
+
+    const getCall = doRequest.mock.calls[0][0];
+    expect(getCall.headers['octane-client-version']).toBe('26.2.8.91');
+  });
+
   test('skips update when search does not return any match', async () => {
     doRequest.mockResolvedValueOnce({
       status: 200,
