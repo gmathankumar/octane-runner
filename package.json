@@ -1,6 +1,6 @@
 {
   "name": "octane-runner",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Link ALM Octane tests to work items — driven by a git commit hash or a CSV of test names",
   "repository": {
     "type": "git",
