@@ -82,7 +82,7 @@ describe('runOctaneLinks', () => {
   });
 
 
-  test('uses octaneClientVersion from config for request headers', async () => {
+  test('uses octane-client-version from curl/session headers when provided', async () => {
     doRequest
       .mockResolvedValueOnce({
         status: 200,
@@ -99,11 +99,11 @@ describe('runOctaneLinks', () => {
         searchUrl: 'https://example.com/tests?fields=id',
         updateUrl: 'https://example.com/tests',
         workItemId: '1809072',
-        octaneClientVersion: '99.1.2.3',
       },
       session: {
         cookie: 'cookie-value',
         'xsrf-header': 'xsrf-value',
+        'octane-client-version': '26.2.16.64',
       },
       delayMs: 0,
       dryRun: false,
@@ -112,8 +112,8 @@ describe('runOctaneLinks', () => {
     const getCall = doRequest.mock.calls[0][0];
     const putCall = doRequest.mock.calls[1][0];
 
-    expect(getCall.headers['octane-client-version']).toBe('99.1.2.3');
-    expect(putCall.headers['octane-client-version']).toBe('99.1.2.3');
+    expect(getCall.headers['octane-client-version']).toBe('26.2.16.64');
+    expect(putCall.headers['octane-client-version']).toBe('26.2.16.64');
   });
 
   test('falls back to default octane client version when not configured', async () => {

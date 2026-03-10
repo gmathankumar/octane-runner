@@ -7,6 +7,7 @@ const fs    = require('fs');
 const { extractTestNamesFromCommit } = require('../lib/patch');
 const { runOctaneLinks }             = require('../lib/octane');
 const { parseCSV }                   = require('../lib/csv');
+const { parseCurlCommand }           = require('../lib/curl-parser');
 
 // ─── Help ─────────────────────────────────────────────────────────────────────
 
@@ -15,33 +16,25 @@ octane-runner — Link ALM Octane tests to a work item
 
 USAGE
   # From a git commit (recommended)
-  octane-runner --commit <hash> --session session.json --config config.json
+  octane-runner --commit <hash> --curl request.curl --config config.json
 
   # From a CSV of test names
-  octane-runner --data data.csv --session session.json --config config.json
+  octane-runner --data data.csv --curl request.curl --config config.json
 
 OPTIONS
-  --commit <hash>      Git commit hash (short or full). Runs git show in CWD.
-  --data   <file>      CSV file with a "testName" column (alternative to --commit)
-  --session <file>     Path to session.json  [default: session.json]
-  --config  <file>     Path to config.json   [default: config.json]
-  --delay  <ms>        Milliseconds between requests  [default: 300]
-  --dry-run            Parse & print what would happen, without firing requests
-  --help               Show this help
-
-SESSION.JSON (gitignore this file — contains secrets)
-  {
-    "cookie":      "<full cookie string>",
-    "xsrf-header": "<xsrf token>",
-    "ptal":        "<ptal value>"
-  }
+  --curl <file>              Path to copied cURL (bash) file; auth read directly
+  --commit <hash>            Git commit hash (short or full). Runs git show in CWD.
+  --data   <file>            CSV file with a "testName" column (alternative to --commit)
+  --config  <file>           Path to config.json   [default: config.json]
+  --delay  <ms>              Milliseconds between requests  [default: 300]
+  --dry-run                  Parse & print what would happen, without firing requests
+  --help                     Show this help
 
 CONFIG.JSON (safe to commit)
   {
     "searchUrl":         "https://almoctane-eur.saas.microfocus.com/api/shared_spaces/<sid>/workspaces/<wid>/tests?fields=...&query=...",
     "updateUrl":         "https://almoctane-eur.saas.microfocus.com/api/shared_spaces/<sid>/workspaces/<wid>/tests",
     "workItemId":        "1809072",
-    "octaneClientVersion": "26.2.8.91",
     "testNameRegex":     "^\\+.*\\b(test_[a-zA-Z0-9_]+)\\s*\\("
   }
 `.trim();
@@ -67,12 +60,12 @@ function parseArgs(argv) {
 (async () => {
   const args = parseArgs(process.argv.slice(2));
 
-  const SESSION_FILE = args['session'] || 'session.json';
   const CONFIG_FILE  = args['config']  || 'config.json';
   const DELAY_MS     = parseInt(args['delay'] || '300', 10);
   const DRY_RUN      = args['dry-run'] === true;
   const COMMIT       = args['commit'];
   const DATA_FILE    = args['data'];
+  const CURL_FILE    = args['curl'];
 
   if (!COMMIT && !DATA_FILE) {
     console.error('ERROR  Must provide either --commit <hash> or --data <file>\n');
@@ -85,12 +78,17 @@ function parseArgs(argv) {
     process.exit(1);
   }
 
+  if (!CURL_FILE) {
+    console.error('ERROR  Must provide --curl <file>\n');
+    console.log(HELP);
+    process.exit(1);
+  }
+
   // ── Load config ─────────────────────────────────────────────────────────────
   const config  = loadJSON(CONFIG_FILE);
   assertFields(config,  ['searchUrl', 'updateUrl', 'workItemId'], CONFIG_FILE);
 
-  const session = loadJSON(SESSION_FILE);
-  assertFields(session, ['cookie', 'xsrf-header'], SESSION_FILE);
+  const auth = loadAuthFromCurl(CURL_FILE);
 
   // ── Resolve test names ───────────────────────────────────────────────────────
   let testNames;
@@ -119,14 +117,15 @@ function parseArgs(argv) {
   }
 
   log('info', `Config     : ${CONFIG_FILE}`);
-  log('info', `Session    : ${SESSION_FILE}`);
+  log('info', `Auth       : cURL ${CURL_FILE}`);
+  if (auth['octane-client-version']) log('info', `Client ver : ${auth['octane-client-version']}`);
   log('info', `Work item  : ${config.workItemId}`);
   log('info', `Delay      : ${DELAY_MS}ms`);
   if (DRY_RUN) log('warn', 'DRY RUN    : no requests will be sent');
   console.log('');
 
   // ── Run ──────────────────────────────────────────────────────────────────────
-  await runOctaneLinks({ testNames, config, session, delayMs: DELAY_MS, dryRun: DRY_RUN });
+  await runOctaneLinks({ testNames, config, session: auth, delayMs: DELAY_MS, dryRun: DRY_RUN });
 })();
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -143,6 +142,24 @@ function loadJSON(filePath) {
     return JSON.parse(raw);
   } catch (e) {
     console.error(`ERROR  Could not parse ${filePath}: ${e.message}`);
+    process.exit(1);
+  }
+}
+
+function loadAuthFromCurl(filePath) {
+  const resolved = path.resolve(filePath);
+  if (!fs.existsSync(resolved)) {
+    console.error(`ERROR  Curl file not found: ${resolved}`);
+    process.exit(1);
+  }
+
+  try {
+    const raw = fs.readFileSync(resolved, 'utf8');
+    const auth = parseCurlCommand(raw);
+    assertFields(auth, ['cookie', 'xsrf-header'], resolved);
+    return auth;
+  } catch (e) {
+    console.error(`ERROR  Could not parse curl file ${filePath}: ${e.message}`);
     process.exit(1);
   }
 }
